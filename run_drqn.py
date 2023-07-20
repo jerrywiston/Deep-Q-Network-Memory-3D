@@ -187,7 +187,8 @@ if __name__ == "__main__":
             os.makedirs(save_path)
 
     ############ Create Env ############
-    maze_obj = maze.MazeGridRandom2(size=(11,11), room_total=5)
+    #maze_obj = maze.MazeGridRandom2(size=(11,11), room_total=5)
+    maze_obj = maze.MazeGridDungeon2(cellsX=2,cellsY=2,cellSize=5)
     fov=90*np.pi/180
     env = maze_env.MazeItemEnv(maze_obj, render_res=(64,64), fov=fov, n_items=n_items)
     stack_frames = 3
@@ -197,7 +198,7 @@ if __name__ == "__main__":
     agent = drqn.DRQNAgent(
         n_actions = 5,
         input_shape = [(stack_frames)*3, *img_size],
-        qnet = models.QNetFRMQN, # models.QNetRNN / models.QNetRNNCell / models.FRMQN
+        qnet = models.QNetRNNCell, # models.QNetRNN / models.QNetRNNCell / models.FRMQN
         device = device,
         learning_rate = 2e-4, 
         reward_decay = 0.98,

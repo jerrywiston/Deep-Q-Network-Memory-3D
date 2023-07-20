@@ -199,6 +199,20 @@ class MazeGridDungeon(MazeGrid):
         gen.gen_level()
         self.maze = np.array(gen.level, dtype=np.uint8)
 
+class MazeGridDungeon2(MazeGrid):
+    def __init__(self, obj_prob=0.0, cellsX=3, cellsY=3, cellSize=5):
+        super().__init__(obj_prob)
+        self.cellsX = cellsX
+        self.cellsY = cellsY
+        self.cellSize = cellSize
+        
+
+    def generate(self):
+        from MazeGen import maze_gen_dungeon2
+        maze = maze_gen_dungeon2.generate(self.cellsX, self.cellsY, self.cellSize)
+        self.maze = np.array(maze, dtype=np.uint8)
+        
+
 #######################################
 # Board Maze
 #######################################
@@ -325,7 +339,7 @@ class MazeBoardRandom(MazeBoard):
         self.collision_map = self.get_map(None, self.map_scale, self.wall_rate, flip=False)
 
 if __name__ == "__main__":
-    maze_obj = MazeGridDungeon()
+    maze_obj = MazeGridDungeon2()
     maze_obj.generate()
     print(maze_obj.maze)
     maze_draw = maze_obj.get_map((2,2,0))

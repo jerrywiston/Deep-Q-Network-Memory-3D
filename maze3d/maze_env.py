@@ -530,7 +530,7 @@ if __name__ == "__main__":
     # Select maze type.
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('--type', '-t', nargs='?', type=str, default="MazeGridRandom", help='Maze type.')
+    parser.add_argument('--type', '-t', nargs='?', type=str, default="MazeGridDungeon2", help='Maze type.')
     maze_type = parser.parse_args().type
     if maze_type == "MazeGridRoom":
         maze_obj = maze.MazeGridRoom()
@@ -538,6 +538,8 @@ if __name__ == "__main__":
         maze_obj = maze.MazeGridRandom2(size=(7,7), room_total=3)
     elif maze_type == "MazeGridDungeon":
         maze_obj = maze.MazeGridDungeon()
+    elif maze_type == "MazeGridDungeon2":
+        maze_obj = maze.MazeGridDungeon2()
     elif maze_type == "MazeBoardRoom":
         maze_obj = maze.MazeBoardRoom()
     elif maze_type == "MazeBoardRandom":
