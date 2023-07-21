@@ -74,6 +74,10 @@ def train(env, agent, stack_frames, img_size, exp_path="experiments_rl", eps_ste
             state_next = np.concatenate([state_next, state[3:]], 0)
             state_next_dict = {"obs":state_next}
 
+            # Test
+            if step>=eps_steps:
+                done = True
+
             # Store transition and learn.
             if step>=eps_steps:
                 agent.store_transition(state_dict, action, reward, state_next_dict, done, True)
@@ -96,7 +100,7 @@ def train(env, agent, stack_frames, img_size, exp_path="experiments_rl", eps_ste
                 print("\nSave Model ...")
                 agent.save_model(path=save_path)
                 print("Generate GIF ...")
-                img_buffer, eval_total_reward, score = play(env, agent, stack_frames, img_size)
+                img_buffer, eval_total_reward, score = play(env, agent, stack_frames, img_size, eps_steps)
                 eval_record.append({"eps":episode, "step": total_step, "score":eval_total_reward})
                 with open(model_path+'eval_record.json', 'w') as file:
                     json.dump(eval_record, file)
@@ -114,7 +118,7 @@ def train(env, agent, stack_frames, img_size, exp_path="experiments_rl", eps_ste
         if total_step > max_steps:
             break
 
-def play(env, agent, stack_frames, img_size, eps_steps=1000, render=False, level_path=None):
+def play(env, agent, stack_frames, img_size, eps_steps=500, render=False, level_path=None):
     img_buffer = []
 
     # Reset environment.
@@ -126,7 +130,7 @@ def play(env, agent, stack_frames, img_size, eps_steps=1000, render=False, level
     state = preprocess(state, img_size=img_size)
     state = state.repeat(stack_frames, axis=0)
     state_dict = {"obs":state}
-    img_buffer.append(env.render()[:,:,::-1])
+    img_buffer.append(env.render(show=render)[:,:,::-1])
 
     # Initialize information.
     step = 0
@@ -144,9 +148,8 @@ def play(env, agent, stack_frames, img_size, eps_steps=1000, render=False, level
         state_next = np.concatenate([state_next,state[3:]], 0)
         state_next_dict = {"obs":state_next}
 
-        img_buffer.append(env.render()[:,:,::-1])
+        img_buffer.append(env.render(show=render)[:,:,::-1])
         if render:
-            env.render() # Can't use in colab.
             cv2.waitKey(1)
 
         # Store transition and learn.
@@ -188,7 +191,7 @@ if __name__ == "__main__":
 
     ############ Create Env ############
     #maze_obj = maze.MazeGridRandom2(size=(11,11), room_total=5)
-    maze_obj = maze.MazeGridDungeon2(cellsX=2,cellsY=2,cellSize=5)
+    maze_obj = maze.MazeGridDungeon2(cellsX=2,cellsY=2,cellSize=6)
     fov=90*np.pi/180
     env = maze_env.MazeItemEnv(maze_obj, render_res=(64,64), fov=fov, n_items=n_items)
     stack_frames = 3
@@ -198,16 +201,16 @@ if __name__ == "__main__":
     agent = drqn.DRQNAgent(
         n_actions = 5,
         input_shape = [(stack_frames)*3, *img_size],
-        qnet = models.QNetRNNCell, # models.QNetRNN / models.QNetRNNCell / models.FRMQN
+        qnet = models.QNetRNNCell, # models.QNetRNN / models.QNetRNNCell / models.QNetFRMQN
         device = device,
         learning_rate = 2e-4, 
         reward_decay = 0.98,
         replace_target_iter = 1000, 
-        memory_size = 20,
+        memory_size = 10,
         batch_size = 32,)
 
     if not test:
-        train(env, agent, stack_frames, img_size, model_path, eps_steps=1000, max_steps=400000)
+        train(env, agent, stack_frames, img_size, model_path, eps_steps=500, max_steps=400000)
     else:
         agent.load_model(os.path.join(exp_name, "save"))
         eval_path = os.path.join(exp_name, "eval/")
